@@ -17,7 +17,10 @@ fi
 # Extract the public key string to a variable
 #PUB_KEY=$(cat "${KEY_PATH}.pub")
 
-# import the keypair into aws
+
+# 2. Import the keypair into AWS safely (ignores error if it already exists)
+echo "Checking AWS key pair..."
+aws ec2 describe-key-pairs --key-names "id_automation" &>/dev/null || \
 aws ec2 import-key-pair \
     --key-name "id_automation" \
     --public-key-material fileb://"${KEY_PATH}.pub"
@@ -32,6 +35,11 @@ do
     --tag-specifications "ResourceType=instance,Tags=[{Key=Name,Value=$instance}]" \
     --query 'Instances[0].InstanceId' \
     --output text)   
+
+
+    # CRITICAL FIX 1: Wait until the instance status transitions to RUNNING
+    echo "Waiting for $instance ($INSTANCE_ID) to be running..."
+    aws ec2 wait instance-running --instance-ids "$INSTANCE_ID"
 
     if [ $instance == "frontend" ]; then
         IP=$(aws ec2 describe-instances \
@@ -74,13 +82,27 @@ do
     echo "Record updated for $instance"
 
     # Copy the service file
-    scp -i $KEY_PATH $SCRIPT_DIR/$instance.service ec2-user@$IP:~/
+   # scp -i $KEY_PATH $SCRIPT_DIR/$instance.service ec2-user@$IP:~/
 
     # Copy the script
-    scp -i $KEY_PATH $SCRIPT_DIR/$instance.sh ec2-user@$IP:~/
+    #scp -i $KEY_PATH $SCRIPT_DIR/$instance.sh ec2-user@$IP:~/
 
     #ssh -i $KEY_PATH $SCRIPT_DIR/$instance.sh ec2-user@$IP << 'EOF'
-    ssh -i "$KEY_PATH" ec2-user@"$IP" "sudo sh ~/$instance.sh"
+    #ssh -i "$KEY_PATH" ec2-user@"$IP" "sudo sh ~/$instance.sh"
+
+     # CRITICAL FIX 2: Wait until SSH port 22 is actually responsive and listening
+    echo "Waiting for SSH to stabilize on $IP..."
+    until nc -z -w 3 "$IP" 22; do
+        sleep 2
+    done
+
+    # StrictHostKeyChecking=no bypasses the "Are you sure you want to continue connecting" prompt automatically
+    echo "Copying files to $instance..."
+    scp -o StrictHostKeyChecking=no -i "$KEY_PATH" "$SCRIPT_DIR/$instance.service" ec2-user@"$IP":~/
+    scp -o StrictHostKeyChecking=no -i "$KEY_PATH" "$SCRIPT_DIR/$instance.sh" ec2-user@"$IP":~/
+
+    echo "Executing script on remote $instance..."
+    ssh -o StrictHostKeyChecking=no -i "$KEY_PATH" ec2-user@"$IP" "sudo sh ~/$instance.sh"
 
 
 done
