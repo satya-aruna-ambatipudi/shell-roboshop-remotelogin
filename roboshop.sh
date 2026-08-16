@@ -79,10 +79,8 @@ do
     # Copy the script
     scp -i $KEY_PATH $SCRIPT_DIR/$instance.sh ec2-user@$IP:~/
 
-    ssh -i $KEY_PATH $SCRIPT_DIR/$instance.sh ec2-user@$IP << 'EOF'
-    # 1. Run your script
-    sudo sh ~/$instance.sh
+    #ssh -i $KEY_PATH $SCRIPT_DIR/$instance.sh ec2-user@$IP << 'EOF'
+    ssh -i "$KEY_PATH" ec2-user@"$IP" "sudo sh ~/$instance.sh"
 
-    EOF
 
 done
