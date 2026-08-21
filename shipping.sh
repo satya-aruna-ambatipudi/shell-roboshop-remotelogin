@@ -9,17 +9,19 @@ N='\e[0m'
 SCRIPT_DIR=$PWD # special variable for present working directory
 USERID=$(id -u) # userid of root user 0, and others non-zero
 LOGS_FOLDER="/var/log/shell-roboshop"
-LOGS_FILE="$LOGS_FOLDER/$0.log"
+LOGS_FILE="$LOGS_FOLDER/$(basename $0).log"
 MYSQL_HOST=mysql.asadaws2026.online
 MYSQL_USER=root
 MYSQL_PASSWD=RoboShop@1
 
 if [ $USERID -ne 0 ]; then
-    echo -e "$R Please run this script with root user access $N" | tee -a $LOGS_FILE
+    echo -e "$R Please run this script with root user access $N" 
     exit 1 # we need to exit with failure exit code
 fi
 
 mkdir -p $LOGS_FOLDER
+
+ORIGINAL_HOME=$(eval echo "~$SUDO_USER")
 
 # Functions are not executed by default, only executed when called
 VALIDATE()
@@ -64,7 +66,7 @@ VALIDATE $? "Download dependencies and build the application"
 mv target/shipping-1.0.jar shipping.jar
 VALIDATE $? "Moving the target application to parent folder"
 
-cp $SCRIPT_DIR/shipping.service /etc/systemd/system/shipping.service
+cp $ORIGINAL_HOME/shipping.service /etc/systemd/system/shipping.service
 VALIDATE $? "Setup Systemd shipping service for systemctl"
 
 systemctl daemon-reload

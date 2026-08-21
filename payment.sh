@@ -12,7 +12,7 @@ LOGS_FOLDER="/var/log/shell-roboshop"
 LOGS_FILE="$LOGS_FOLDER/$0.log"
 
 if [ $USERID -ne 0 ]; then
-    echo -e "$R Please run this script with root user access $N" | tee -a $LOGS_FILE
+    echo -e "$R Please run this script with root user access $N" 
     exit 1 # we need to exit with failure exit code
 fi
 
@@ -58,7 +58,7 @@ VALIDATE $? "Unzip the application code"
 pip3 install -r requirements.txt  &>> $LOGS_FILE
 VALIDATE $? "Download and install dependencies"
 
-cp $SCRIPT_DIR/payment.service /etc/systemd/system/payment.service
+cp $ORIGINAL_HOME/payment.service /etc/systemd/system/payment.service
 VALIDATE $? "Setup Systemd payment service for systemctl"
 
 systemctl daemon-reload

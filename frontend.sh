@@ -9,7 +9,7 @@ N='\e[0m'
 SCRIPT_DIR=$PWD # special variable for present working directory
 USERID=$(id -u) # userid of root user 0, and others non-zero
 LOGS_FOLDER="/var/log/shell-roboshop"
-LOGS_FILE="$LOGS_FOLDER/$0.log"
+LOGS_FILE="$LOGS_FOLDER/$(basename $0).log"
 
 
 if [ $USERID -ne 0 ]; then
@@ -18,6 +18,7 @@ if [ $USERID -ne 0 ]; then
 fi
 
 mkdir -p $LOGS_FOLDER
+ORIGINAL_HOME=$(eval echo "~$SUDO_USER")
 
 # Functions are not executed by default, only executed when called
 VALIDATE()
@@ -57,7 +58,7 @@ VALIDATE $? "Go to html folder"
 unzip /tmp/frontend.zip &>> $LOGS_FILE
 VALIDATE $? "Unzip the frontend content"
 
-cp $SCRIPT_DIR/nginx.conf /etc/nginx/nginx.conf
+cp $ORIGINAL_HOME/nginx.conf /etc/nginx/nginx.conf
 VALIDATE $? "Create Nginx Reverse Proxy Configuration"
 
 systemctl restart nginx 

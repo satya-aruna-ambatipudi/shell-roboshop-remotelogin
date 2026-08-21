@@ -123,7 +123,14 @@ do
     # 5. Execute file transfers
     echo "Transferring application configurations to $instance..."
     scp -o StrictHostKeyChecking=no -i "$KEY_PATH" "$SCRIPT_DIR/$instance."* $SSH_USER@"$IP":~/
-   # scp -o StrictHostKeyChecking=no -i "$KEY_PATH" "$SCRIPT_DIR/$instance.sh" $SSH_USER@"$IP":~/
+
+    if [ "$instance" == "catalogue" ]; then
+        scp -o StrictHostKeyChecking=no -i "$KEY_PATH" "$SCRIPT_DIR/mongodb.repo" $SSH_USER@"$IP":~/
+    fi
+
+    if [ "$instance" == "frontend" ]; then
+        scp -o StrictHostKeyChecking=no -i "$KEY_PATH" "$SCRIPT_DIR/nginx.conf" $SSH_USER@"$IP":~/
+    fi
 
     # 6. Execute deployment
     echo "Initiating execution script on $instance..."

@@ -9,14 +9,15 @@ N='\e[0m'
 
 USERID=$(id -u) # userid of root user 0, and others non-zero
 LOGS_FOLDER="/var/log/shell-roboshop"
-LOGS_FILE="$LOGS_FOLDER/$0.log"
+LOGS_FILE="$LOGS_FOLDER/$(basename $0).log"
 
 if [ $USERID -ne 0 ]; then
-    echo -e "$R Please run this script with root user access $N" | tee -a $LOGS_FILE
+    echo -e "$R Please run this script with root user access $N"
     exit 1 # we need to exit with failure exit code
 fi
 
 mkdir -p $LOGS_FOLDER
+ORIGINAL_HOME=$(eval echo "~$SUDO_USER")
 
 # Functions are not executed by default, only executed when called
 VALIDATE()
@@ -29,7 +30,7 @@ VALIDATE()
     fi
 }
 
-cp rabbitmq.repo /etc/yum.repos.d/rabbitmq.repo &>> $LOGS_FILE
+cp $ORIGINAL_HOME/rabbitmq.repo /etc/yum.repos.d/rabbitmq.repo &>> $LOGS_FILE
 VALIDATE $? "Copying rabbitmq repo"
 
 dnf install rabbitmq-server -y &>> $LOGS_FILE

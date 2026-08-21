@@ -9,15 +9,17 @@ N='\e[0m'
 SCRIPT_DIR=$PWD # special variable for present working directory
 USERID=$(id -u) # userid of root user 0, and others non-zero
 LOGS_FOLDER="/var/log/shell-roboshop"
-LOGS_FILE="$LOGS_FOLDER/$0.log"
+LOGS_FILE="$LOGS_FOLDER/$(basename $0).log"
 MONGODB_HOST="mongodb.asadaws2026.online"
 
 if [ $USERID -ne 0 ]; then
-    echo -e "$R Please run this script with root user access $N" | tee -a $LOGS_FILE
+    echo -e "$R Please run this script with root user access $N" 
     exit 1 # we need to exit with failure exit code
 fi
 
 mkdir -p $LOGS_FOLDER
+
+ORIGINAL_HOME=$(eval echo "~$SUDO_USER")
 
 # Functions are not executed by default, only executed when called
 VALIDATE()
@@ -65,7 +67,7 @@ VALIDATE $? "Unzip the application code"
 npm install  &>> $LOGS_FILE
 VALIDATE $? "Install dependencies"
 
-cp $SCRIPT_DIR/catalogue.service /etc/systemd/system/catalogue.service
+cp $ORIGINAL_HOME/catalogue.service /etc/systemd/system/catalogue.service
 VALIDATE $? "Setup Systemd catalogue service for systemctl"
 
 systemctl daemon-reload
@@ -77,7 +79,7 @@ VALIDATE $? "Enable catalogue service"
 systemctl start catalogue
 VALIDATE $? "Start catalogue service"
 
-cp $SCRIPT_DIR/mongo.repo /etc/yum.repos.d/mongo.repo
+cp $ORIGINAL_HOME/mongodb.repo /etc/yum.repos.d/mongo.repo
 VALIDATE $? "Setup mongodb repo"
 
 dnf install mongodb-mongosh -y &>> $LOGS_FILE

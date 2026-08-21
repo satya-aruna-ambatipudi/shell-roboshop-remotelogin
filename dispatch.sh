@@ -9,7 +9,7 @@ N='\e[0m'
 SCRIPT_DIR=$PWD # special variable for present working directory
 USERID=$(id -u) # userid of root user 0, and others non-zero
 LOGS_FOLDER="/var/log/shell-roboshop"
-LOGS_FILE="$LOGS_FOLDER/$0.log"
+LOGS_FILE="$LOGS_FOLDER/$(basename $0).log"
 
 if [ $USERID -ne 0 ]; then
     echo -e "$R Please run this script with root user access $N" | tee -a $LOGS_FILE
@@ -17,6 +17,8 @@ if [ $USERID -ne 0 ]; then
 fi
 
 mkdir -p $LOGS_FOLDER
+
+ORIGINAL_HOME=$(eval echo "~$SUDO_USER")
 
 # Functions are not executed by default, only executed when called
 VALIDATE()
@@ -64,7 +66,7 @@ VALIDATE $? "Download and install dependencies"
 go build  &>> $LOGS_FILE
 VALIDATE $? "Build the dispatch application"
 
-cp $SCRIPT_DIR/dispatch.service /etc/systemd/system/dispatch.service
+cp $ORIGINAL_HOME/dispatch.service /etc/systemd/system/dispatch.service
 VALIDATE $? "Setup Systemd dispatch service for systemctl"
 
 systemctl daemon-reload
