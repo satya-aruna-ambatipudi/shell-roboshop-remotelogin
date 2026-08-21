@@ -9,7 +9,7 @@ N='\e[0m'
 SCRIPT_DIR=$PWD # special variable for present working directory
 USERID=$(id -u) # userid of root user 0, and others non-zero
 LOGS_FOLDER="/var/log/shell-roboshop"
-LOGS_FILE="$LOGS_FOLDER/$0.log"
+LOGS_FILE="$LOGS_FOLDER/$(basename $0).log"
 
 if [ $USERID -ne 0 ]; then
     echo -e "$R Please run this script with root user access $N" 
@@ -17,6 +17,8 @@ if [ $USERID -ne 0 ]; then
 fi
 
 mkdir -p $LOGS_FOLDER
+# 1. Dynamically discover the original user's home directory path
+ORIGINAL_HOME=$(eval echo "~$SUDO_USER")
 
 # Functions are not executed by default, only executed when called
 VALIDATE()
