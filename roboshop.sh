@@ -73,15 +73,21 @@ do
     echo "Waiting for instance $INSTANCE_ID to enter running state..."
     aws ec2 wait instance-running --instance-ids "$INSTANCE_ID"
 
-    # Use PrivateIpAddress everywhere since your script runs from instance 172.31.25.53
-    IP=$(aws ec2 describe-instances \
-    --instance-ids $INSTANCE_ID \
-    --query 'Reservations[*].Instances[*].[PrivateIpAddress]' \
-    --output text)
-
     if [ "$instance" == "frontend" ]; then
+    
+        # Use PrivateIpAddress everywhere since your script runs from instance 172.31.25.53
+        IP=$(aws ec2 describe-instances \
+        --instance-ids $INSTANCE_ID \
+        --query 'Reservations[*].Instances[*].[PublicIpAddress]' \
+        --output text)
         RECORD_NAME="$DOMAIN_NAME"
     else
+    
+        # Use PrivateIpAddress everywhere since your script runs from instance 172.31.25.53
+        IP=$(aws ec2 describe-instances \
+        --instance-ids $INSTANCE_ID \
+        --query 'Reservations[*].Instances[*].[PrivateIpAddress]' \
+        --output text)
         RECORD_NAME="$instance.$DOMAIN_NAME"
     fi
 
