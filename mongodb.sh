@@ -18,6 +18,9 @@ fi
 
 mkdir -p $LOGS_FOLDER
 
+# 1. Dynamically discover the original user's home directory path
+ORIGINAL_HOME=$(eval echo "~$SUDO_USER")
+
 # Functions are not executed by default, only executed when called
 VALIDATE()
 {
@@ -29,7 +32,7 @@ VALIDATE()
     fi
 }
 
-cp $HOME/mongodb.repo /etc/yum.repos.d/mongo.repo &>> $LOGS_FILE
+cp $ORIGINAL_HOME/mongodb.repo /etc/yum.repos.d/mongo.repo &>> $LOGS_FILE
 VALIDATE $? "Copying Mongo repo"
 
 dnf install mongodb-org -y &>> $LOGS_FILE
