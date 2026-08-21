@@ -6,7 +6,7 @@ INSTANCE_TYPE="t3.micro"
 HOSTED_ZONEID="Z035824316LQSIE0W55SY"
 DOMAIN_NAME="asadaws2026.online"
 KEY_PATH="$HOME/.ssh/id_automation"
-SCRIPT_DIR=$PWD
+SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 SSH_USER="ec2-user" 
 
 # 1. Generate SSH Key only if it doesn't exist
