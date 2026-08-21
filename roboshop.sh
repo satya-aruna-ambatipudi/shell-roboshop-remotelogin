@@ -12,7 +12,7 @@ SSH_USER="ec2-user"
 # 1. Generate SSH Key only if it doesn't exist
 if [ ! -f "$KEY_PATH" ]; then
     echo "Generating automation SSH key..."
-    ssh-keygen -t rsa -N "" -f "$KEY_PATH"
+    ssh-keygen -t rsa -b 3072 -N "" -f "$KEY_PATH"
     chmod 600 "$KEY_PATH"
 fi
 
@@ -26,13 +26,31 @@ aws ec2 import-key-pair \
     --public-key-material fileb://"${KEY_PATH}.pub"
 
 # 3. Write a dynamic script file to pass into user-data cleanly
+# UPDATED: Injected RHEL 9 SSH password authentication disabling logic into first-boot user-data
 cat << EOF > user_data_script.sh
 #!/bin/bash
+# Set up secure key directories
 mkdir -p /home/${SSH_USER}/.ssh
 echo "${PUB_KEY_CONTENT}" >> /home/${SSH_USER}/.ssh/authorized_keys
 chmod 700 /home/${SSH_USER}/.ssh
 chmod 600 /home/${SSH_USER}/.ssh/authorized_keys
 chown -R ${SSH_USER}:${SSH_USER} /home/${SSH_USER}/.ssh
+
+# Harden SSH: Disable Password and Keyboard-Interactive Auth for RHEL 9
+mkdir -p /etc/ssh/sshd_config.d
+
+cat << 'INNER_EOF' > /etc/ssh/sshd_config.d/49-disable-passwords.conf
+PasswordAuthentication no
+KbdInteractiveAuthentication no
+INNER_EOF
+
+# Remove weaker configuration fallbacks if cloud-init generated them
+rm -f /etc/ssh/sshd_config.d/50-disable-passwords.conf
+
+# Reload the SSH daemon to enforce rules safely without disconnecting boot hooks
+if sshd -t; then
+    systemctl reload sshd
+fi
 EOF
 
 for instance in $@
@@ -115,4 +133,3 @@ done
 
 # Clean up local temporary file
 rm -f user_data_script.sh
-here is my script..update it accordingly
