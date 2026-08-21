@@ -122,7 +122,7 @@ do
 
     # 5. Execute file transfers
     echo "Transferring application configurations to $instance..."
-    scp -o StrictHostKeyChecking=no -i "$KEY_PATH" "$SCRIPT_DIR/$instance.*" $SSH_USER@"$IP":~/
+    scp -o StrictHostKeyChecking=no -i "$KEY_PATH" "$SCRIPT_DIR/$instance."* $SSH_USER@"$IP":~/
    # scp -o StrictHostKeyChecking=no -i "$KEY_PATH" "$SCRIPT_DIR/$instance.sh" $SSH_USER@"$IP":~/
 
     # 6. Execute deployment
